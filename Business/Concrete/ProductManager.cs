@@ -22,10 +22,10 @@ namespace Business.Concrete
         {
             // Business Logic Rules are Here!
 
-            if (DateTime.Now.Hour == 22)
-            {
-                return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
-            }
+            //if (DateTime.Now.Hour == 23)
+            //{
+            //    return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
+            //}
 
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(), true, Messages.ProductListed);
         }
@@ -56,6 +56,7 @@ namespace Business.Concrete
             {
                 return new ErrorResult(Messages.ProductNameInvalid);
             }
+            _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
         }
     }
