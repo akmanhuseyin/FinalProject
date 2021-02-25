@@ -34,8 +34,10 @@ namespace WebAPI
             // IProductService lazým olursa diye PM newliyor bizim yerimize bellekte yer tutuyor bir tane.
             // ***Autofac, Ninject,CastleWindsor,StructureMap,LightInject,DryInject --> IoC Container
             // AOP yapýlacak.
-            services.AddSingleton<IProductService,ProductManager>();
-            services.AddSingleton<IProductDal,EfProductDal>();
+
+            // C# kendi IoC'si.
+            //services.AddSingleton<IProductService,ProductManager>();
+            //services.AddSingleton<IProductDal,EfProductDal>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
