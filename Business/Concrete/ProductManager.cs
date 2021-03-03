@@ -3,6 +3,9 @@ using Business.BusinessAspects.Autofac;
 using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -15,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Transactions;
 
 namespace Business.Concrete
 {
@@ -28,10 +32,10 @@ namespace Business.Concrete
             _categoryService = categoryService;
         }
 
+        [CacheAspect] 
+        [PerformanceAspect(5)]//key, value ilişkisiyle tutuluyor.
         public IDataResult<List<Product>> GetAll()
         {
-            // Business Logic Rules are Here!
-
             //if (DateTime.Now.Hour == 23)
             //{
             //    return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
@@ -45,6 +49,7 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == id));
         }
 
+        [CacheAspect]
         public IDataResult<Product> GetById(int productId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
@@ -60,8 +65,24 @@ namespace Business.Concrete
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails(), true, Messages.MaintenanceTime);
         }
 
+        [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Product product)
+        {
+
+            Add(product);
+            if (product.UnitPrice < 10)
+            {
+                throw new Exception("");
+            }
+            Add(product);
+
+
+            return null;
+        }
+
         [SecuredOperation("product.add")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             // Validation : Doğrulama ve Business ayrı olmalı!
@@ -80,12 +101,13 @@ namespace Business.Concrete
         }
 
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             throw new NotImplementedException();
         }
 
-        // Business controller methods.
+        #region Business Rules Methods.        
         private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
         {
             var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
@@ -99,7 +121,7 @@ namespace Business.Concrete
         private IResult CheckIfProductNameExists(string productName)
         {
             var result = _productDal.GetAll(p => p.ProductName == productName).Any();
-            if (!result)
+            if (result)
             {
                 return new ErrorResult(Messages.ProductNameAlreadyExistsError);
             }
@@ -115,5 +137,6 @@ namespace Business.Concrete
             }
             return new SuccessResult();
         }
+        #endregion
     }
 }
