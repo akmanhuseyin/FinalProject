@@ -38,6 +38,7 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddCors();
 
             // IProductService lazým olursa diye PM newliyor bizim yerimize bellekte yer tutuyor bir tane.
             // ***Autofac, Ninject,CastleWindsor,StructureMap,LightInject,DryInject --> IoC Container
@@ -46,7 +47,7 @@ namespace WebAPI
             // C# kendi IoC'si.
             //services.AddSingleton<IProductService,ProductManager>();
             //services.AddSingleton<IProductDal,EfProductDal>();
-            
+
 
             var tokenOptions = Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
@@ -76,6 +77,9 @@ namespace WebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.ConfigureCustomExceptionMiddleware();
+
+            app.UseCors(builder => builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
 
             app.UseHttpsRedirection();
 
